@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  geth:
+    build:
+      context: .
+    image: geth
+    container_name: geth
+    volumes:
+      - data:/data
+
+volumes:
+  data: {}
