@@ -1,12 +1,15 @@
 import os
 import boto3
-import tiktoken
+import json
 from google_drive import download_file, list_files
-from fastembed.embedding import TextEmbedding
+from fastembed import TextEmbedding
 from transformers import AutoTokenizer
 
+# Set tokenizers parallelism to avoid warning
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 DEFAULT_MODEL_NAME = "BAAI/bge-large-en-v1.5"
-DEFAULT_CHUNK_SIZE = 1024
+DEFAULT_CHUNK_SIZE = 512
 def embed(text):
     model = TextEmbedding(model_name=DEFAULT_MODEL_NAME)
     embeddings = list(model.embed([text]))
@@ -23,7 +26,7 @@ def _split_into_chunks(text, chunk_size=DEFAULT_CHUNK_SIZE, model_name=DEFAULT_M
     
     Args:
         text: The text to split
-        chunk_size: Maximum number of tokens per chunk (default: 1024)
+        chunk_size: Maximum number of tokens per chunk (default: 512)
         model_name: The model name to use for tokenization (default: BAAI/bge-large-en-v1.5)
         
     Returns:
@@ -91,10 +94,9 @@ def _split_into_chunks(text, chunk_size=DEFAULT_CHUNK_SIZE, model_name=DEFAULT_M
         # Fallback to simple character-based splitting if tokenization fails
         return [text[i:i+chunk_size] for i in range(0, len(text), chunk_size) if text[i:i+chunk_size].strip()]
 
-def test_read_chunks():
+def test_read_chunks(file_id):
     """Test the token-based chunking with a sample text file."""
-    file_id = '1bbEC_fTZI7B_RJ9Z_l9gTzilmDqNdkeC'
-    file_name, file = download_file(file_id, 'test.txt')
+    file_name, file = download_file(file_id)
     print(f"Downloaded file: {file_name}")
     
     try:
@@ -140,78 +142,69 @@ def test_read_chunks():
         if 'file' in locals() and not file.closed:
             file.close()
 
-def save_file(file_id, s3_bucket, s3_prefix=""):
+def save_file(file_id, s3_bucket, s3_index):
     """
     Download a file from Google Drive, split it into chunks, generate embeddings,
     and store them in S3 using existing functions.
-
-    Args:
-        file_id: Google Drive file ID
-        s3_bucket: S3 bucket name
-        s3_prefix: S3 prefix for storing the vectors (default: "")
     """
-    try:
-        # Initialize S3 client
-        s3 = boto3.client('s3')
-        
-        # Download file using existing function
-        file_name, file = download_file(file_id, f"temp_{file_id}")
-        print(f"Downloaded file: {file_name}")
-        
-        try:
-            # Read and decode the content
-            file.seek(0)
-            content = file.read().decode('utf-8')
-            
-            # Split into chunks using existing function
-            chunks = _split_into_chunks(content)
-            print(f"Split file into {len(chunks)} chunks")
-            
-            # Generate and store embeddings for each chunk
-            for i, chunk in enumerate(chunks):
-                # Generate embedding using existing function
-                embedding = embed(chunk)
-                
-                # Create S3 key
-                chunk_key = f"{s3_prefix}{file_id}/chunk_{i}.json"
-                
-                # Prepare data for S3
-                data = {
-                    'file_id': file_id,
-                    'file_name': file_name,
-                    'chunk_index': i,
-                    'chunk_text': chunk,
-                    'embedding': embedding.tolist()
+    file_name, file = download_file(file_id)
+    print(f"save_file: {file_name} to s3 bucket: {s3_bucket}, index: {s3_index}")
+    content = file.read().decode('utf-8')
+    chunks = _split_into_chunks(content)
+
+    # Create S3 Vectors clients in the AWS Region of your choice.
+    session = boto3.Session(profile_name="staging")
+    s3vectors = session.client("s3vectors")
+
+    length = len(chunks)
+    for i, chunk in enumerate(chunks):
+        embedding = embed(chunk)
+        print(f"Chunk {i}/{length} embedding: {len(embedding)}")
+        rsp = s3vectors.put_vectors(
+            vectorBucketName=s3_bucket,   
+            indexName=s3_index,   
+            vectors=[
+                {
+                    "key": f"{i}_{file_name}",
+                    "data": {"float32": embedding.tolist()},
+                    "metadata": {
+                        "source": "google_drive",
+                        "source_id": file_id,
+                        "source_name": file_name,
+                        "chunk_index": i,
+                        "chunk_size": len(chunk),
+                        "owner": "lincai",
+                        "full_text": chunk  # Store full text for retrieval
+                    }
                 }
-                
-                # Upload to S3
-                s3.put_object(
-                    Bucket=s3_bucket,
-                    Key=chunk_key,
-                    Body=json.dumps(data),
-                    ContentType='application/json'
-                )
-                print(f"Uploaded chunk {i} to s3://{s3_bucket}/{chunk_key}")
-            
-            print(f"Successfully processed and uploaded {len(chunks)} chunks")
-            return True
-            
-        except Exception as e:
-            print(f"Error processing file {file_name}: {str(e)}")
-            raise
-            
-        finally:
-            if not file.closed:
-                file.close()
-                
-    except Exception as e:
-        print(f"Error in save_file: {str(e)}")
-        raise
+            ]
+        )   
+        print(rsp['ResponseMetadata']['RequestId'])
+
+def query_vectors(s3_bucket, s3_index, query_text):
+    """
+    Query the S3 Vectors index with a text query.
+    """
+    session = boto3.Session(profile_name="staging")
+    s3vectors = session.client("s3vectors")
+
+    embedding = embed(query_text)
+    rsp = s3vectors.query_vectors(
+        vectorBucketName=s3_bucket,
+        indexName=s3_index,
+        queryVector={"float32": embedding.tolist()},
+        topK=3,
+        returnDistance=True,
+        returnMetadata=True
+    )
+    print(json.dumps(rsp["vectors"], indent=2))
 
 if __name__ == "__main__":
     #test_embed()
-    # files = list_files()
-    # for file in files:
-    #     print(file['name'], file['id'])
-    test_read_chunks()
-
+    files = list_files()
+    for file in files:
+        print(file['name'], file['id'])
+    #file_id = '1jXce44QBIthYyEqplXDrRezK-tzunyRS'
+    #test_read_chunks('1bbEC_fTZI7B_RJ9Z_l9gTzilmDqNdkeC')
+    #save_file(file_id, 'test-lincai', 'test-kdb')
+    #query_vectors('test-lincai', 'test-kdb', "snowflake")

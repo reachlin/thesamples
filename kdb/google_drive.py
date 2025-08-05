@@ -74,7 +74,7 @@ def list_files():
     print(f"Total files found: {len(results)}")
     return results
 
-def download_file(file_id, file_name):
+def download_file(file_id):
     try:
         drive_service = _get_google_drive_service()
         # First get the file metadata to check the MIME type
@@ -83,6 +83,7 @@ def download_file(file_id, file_name):
             fields='mimeType,exportLinks,name'
         ).execute()
         
+        file_name = file_metadata.get('name', '')
         mime_type = file_metadata.get('mimeType', '')
         
         # If it's a Google Workspace file, we need to export it
@@ -136,8 +137,7 @@ def test_list_files():
 def test_download_file():
     files = list_files()
     file_id = files[0]['id']
-    file_name = files[0]['name']
-    file_name, file = download_file(file_id, file_name)
+    file_name, file = download_file(file_id)
     print(f"file name: {file_name}")
     # save file to disk
     with open(file_name, 'wb') as f:
