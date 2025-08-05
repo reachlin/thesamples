@@ -1,0 +1,6 @@
+fastembed
+boto3 ~=1.40.1
+google-api-python-client
+google-auth
+tiktoken
+transformers>=4.30.0
