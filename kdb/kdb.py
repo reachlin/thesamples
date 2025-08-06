@@ -15,9 +15,13 @@ from google_drive import list_files
 from s3_vector import save_file, query_vectors
 
 def main():
+    from dotenv import load_dotenv
+    load_dotenv()
+
     parser = argparse.ArgumentParser(description='Knowledge Database (KDB) - Manage documents in S3 Vectors')
     parser.add_argument('--list', action='store_true', help='List files in Google Drive')
     parser.add_argument('--save', action='store_true', help='Save a file to S3 vectors')
+    parser.add_argument('--openai', action='store_true', help='Use OpenAI for embedding text-embedding-ada-002(length 1536)')
     parser.add_argument('--query', type=str, help='Query S3 vectors with a text query')
     parser.add_argument('--file_id', type=str, help='The file ID to download from Google Drive')
     parser.add_argument('--s3_bucket', type=str, help='The S3 bucket name to save vectors')
@@ -52,7 +56,11 @@ def main():
         
         print(f"Saving file {args.file_id} to S3 bucket '{args.s3_bucket}', index '{args.s3_index}'")
         try:
-            save_file(args.file_id, args.s3_bucket, args.s3_index)
+            if args.openai:
+                print("Using OpenAI for embedding with text-embedding-ada-002")
+                save_file(args.file_id, args.s3_bucket, args.s3_index, embedding='text-embedding-ada-002')
+            else:
+                save_file(args.file_id, args.s3_bucket, args.s3_index)
             print("File saved successfully!")
         except Exception as e:
             print(f"Error saving file: {e}")
@@ -68,7 +76,11 @@ def main():
         print(f"Query: '{args.query}'")
         print("-" * 50)
         try:
-            query_vectors(args.s3_bucket, args.s3_index, args.query)
+            if args.openai:
+                print("Using OpenAI for embedding with text-embedding-ada-002")
+                query_vectors(args.s3_bucket, args.s3_index, args.query, embedding='text-embedding-ada-002')
+            else:
+                query_vectors(args.s3_bucket, args.s3_index, args.query)
         except Exception as e:
             print(f"Error querying vectors: {e}")
             sys.exit(1)

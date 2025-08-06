@@ -142,7 +142,58 @@ def test_read_chunks(file_id):
         if 'file' in locals() and not file.closed:
             file.close()
 
-def save_file(file_id, s3_bucket, s3_index):
+def _save_file_with_openai(file_id, file_name, content, s3_bucket, s3_index):
+    import tiktoken
+    # Initialize tokenizer for ada-002
+    tokenizer = tiktoken.get_encoding("cl100k_base")
+    tokens = tokenizer.encode(content)
+    chunks = []
+    start = 0
+    chunk_size=1024
+    overlap=50
+    from openai import OpenAI
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    # Create S3 Vectors clients in the AWS Region of your choice.
+    session = boto3.Session(profile_name="staging")
+    s3vectors = session.client("s3vectors")
+
+    while start < len(tokens):
+        end = min(start + chunk_size, len(tokens))
+        chunk = tokens[start:end]
+        chunks.append(tokenizer.decode(chunk))
+        response = client.embeddings.create(
+            model="text-embedding-ada-002",
+            input=tokenizer.decode(chunk)
+        )
+        embedding = response.data[0].embedding
+        rsp = s3vectors.put_vectors(
+            vectorBucketName=s3_bucket,   
+            indexName=s3_index,   
+            vectors=[
+                {
+                    "key": f"{start}_{file_name}",
+                    "data": {"float32": embedding.tolist() if hasattr(embedding, "tolist") else embedding},
+                    "metadata": {
+                        "source": "google_drive",
+                        "source_id": file_id,
+                        "source_name": file_name,
+                        "chunk_index": start,
+                        "chunk_size": len(chunk),
+                        "owner": "lincai",
+                        "full_text": tokenizer.decode(chunk)  # Store full text for retrieval
+                    }
+                }
+            ]
+        ) 
+        print(f"Saved chunk {start} to S3 Vectors: {rsp['ResponseMetadata']['RequestId']}")
+        # Break if at end
+        if end == len(tokens):
+            break
+        # Move start to the next chunk, allowing for overlap            
+        start = end - overlap
+    print(f"Saved {len(chunks)} chunks to S3 Vectors from file: {file_name}")
+
+def save_file(file_id, s3_bucket, s3_index, embedding='text-embedding-ada-002'):
     """
     Download a file from Google Drive, split it into chunks, generate embeddings,
     and store them in S3 using existing functions.
@@ -150,6 +201,10 @@ def save_file(file_id, s3_bucket, s3_index):
     file_name, file = download_file(file_id)
     print(f"save_file: {file_name} to s3 bucket: {s3_bucket}, index: {s3_index}")
     content = file.read().decode('utf-8')
+
+    if embedding == 'text-embedding-ada-002':
+        _save_file_with_openai(file_id, file_name, content, s3_bucket, s3_index)
+        return
     chunks = _split_into_chunks(content)
 
     # Create S3 Vectors clients in the AWS Region of your choice.
@@ -179,20 +234,34 @@ def save_file(file_id, s3_bucket, s3_index):
                 }
             ]
         )   
-        print(rsp['ResponseMetadata']['RequestId'])
+        print(rsp.get('ResponseMetadata', {}).get('RequestId', 'No RequestId found'))
 
-def query_vectors(s3_bucket, s3_index, query_text):
+def query_vectors(s3_bucket, s3_index, query_text, embedding='text-embedding-ada-002'):
     """
     Query the S3 Vectors index with a text query.
     """
     session = boto3.Session(profile_name="staging")
     s3vectors = session.client("s3vectors")
 
-    embedding = embed(query_text)
+    if embedding == 'text-embedding-ada-002':
+        from openai import OpenAI
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        response = client.embeddings.create(
+            model="text-embedding-ada-002",
+            input=query_text
+        )
+        embedding = response.data[0].embedding
+    else:
+        # Use the default embedding function
+        print("Using default embedding function")
+        embedding = embed(query_text)
+    # Ensure embedding is always a list
+    if not isinstance(embedding, list):
+        embedding = embedding.tolist()
     rsp = s3vectors.query_vectors(
         vectorBucketName=s3_bucket,
         indexName=s3_index,
-        queryVector={"float32": embedding.tolist()},
+        queryVector={"float32": embedding},
         topK=3,
         returnDistance=True,
         returnMetadata=True
