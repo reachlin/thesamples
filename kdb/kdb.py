@@ -13,6 +13,7 @@ import argparse
 import sys
 from google_drive import list_files
 from s3_vector import save_file, query_vectors
+import os
 
 def main():
     from dotenv import load_dotenv
@@ -47,20 +48,21 @@ def main():
         except Exception as e:
             print(f"Error listing files: {e}")
             sys.exit(1)
-    
+    s3_vectors_bucket = os.getenv('S3_VECTORS_BUCKET_NAME', args.s3_bucket)
+    s3_vectors_index = os.getenv('S3_VECTORS_INDEX_NAME', args.s3_index)
     # Save a file to S3 vectors
     if args.save:
-        if not args.file_id or not args.s3_bucket or not args.s3_index:
+        if not args.file_id or not s3_vectors_bucket or not s3_vectors_index:
             print("Error: --save requires --file_id, --s3_bucket, and --s3_index")
             sys.exit(1)
-        
-        print(f"Saving file {args.file_id} to S3 bucket '{args.s3_bucket}', index '{args.s3_index}'")
+
+        print(f"Saving file {args.file_id} to S3 bucket '{s3_vectors_bucket}', index '{s3_vectors_index}'")
         try:
             if args.openai:
                 print("Using OpenAI for embedding with text-embedding-ada-002")
-                save_file(args.file_id, args.s3_bucket, args.s3_index, embedding='text-embedding-ada-002')
+                save_file(args.file_id, s3_vectors_bucket, s3_vectors_index, embedding='text-embedding-ada-002')
             else:
-                save_file(args.file_id, args.s3_bucket, args.s3_index)
+                save_file(args.file_id, s3_vectors_bucket, s3_vectors_index)
             print("File saved successfully!")
         except Exception as e:
             print(f"Error saving file: {e}")
@@ -68,19 +70,19 @@ def main():
     
     # Query S3 vectors
     if args.query:
-        if not args.s3_bucket or not args.s3_index:
+        if not s3_vectors_bucket or not s3_vectors_index:
             print("Error: --query requires --s3_bucket and --s3_index")
             sys.exit(1)
-        
-        print(f"Querying S3 index '{args.s3_index}' in bucket '{args.s3_bucket}'")
+
+        print(f"Querying S3 index '{s3_vectors_index}' in bucket '{s3_vectors_bucket}'")
         print(f"Query: '{args.query}'")
         print("-" * 50)
         try:
             if args.openai:
                 print("Using OpenAI for embedding with text-embedding-ada-002")
-                query_vectors(args.s3_bucket, args.s3_index, args.query, embedding='text-embedding-ada-002')
+                query_vectors(s3_vectors_bucket, s3_vectors_index, args.query, embedding='text-embedding-ada-002')
             else:
-                query_vectors(args.s3_bucket, args.s3_index, args.query)
+                query_vectors(s3_vectors_bucket, s3_vectors_index, args.query)
         except Exception as e:
             print(f"Error querying vectors: {e}")
             sys.exit(1)
