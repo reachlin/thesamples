@@ -48,8 +48,14 @@ def main():
         except Exception as e:
             print(f"Error listing files: {e}")
             sys.exit(1)
-    s3_vectors_bucket = os.getenv('S3_VECTORS_BUCKET_NAME', args.s3_bucket)
-    s3_vectors_index = os.getenv('S3_VECTORS_INDEX_NAME', args.s3_index)
+    if not args.s3_bucket:
+        s3_vectors_bucket = os.getenv('S3_VECTORS_BUCKET_NAME', None)
+    else:
+        s3_vectors_bucket = args.s3_bucket
+    if not args.s3_index:
+        s3_vectors_index = os.getenv('S3_VECTORS_INDEX_NAME', None)
+    else:
+        s3_vectors_index = args.s3_index
     # Save a file to S3 vectors
     if args.save:
         if not args.file_id or not s3_vectors_bucket or not s3_vectors_index:
