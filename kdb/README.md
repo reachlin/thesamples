@@ -13,10 +13,11 @@ Before using this script, ensure you have the following:
     ```
 3.  **AWS Credentials**: Configure your AWS credentials with permissions to access S3. This can be done by setting up a credentials file (`~/.aws/credentials`) or through environment variables. The script uses the "staging" profile.
 4.  **Google Drive API Credentials**: You'll need a google service account token file  with a name called `google_drive_service_account.json` for the Google Drive API to work. Follow the Google Drive API Python quickstart to get these.
+5. **.env**: All envirnoment variables are loaded from this file.
 
 ## Usage
 
-The script is controlled via command-line arguments.
+Check env. values in `.env` file. The script is controlled via command-line arguments.
 
 ```bash
 python kdb.py [COMMAND] [OPTIONS]

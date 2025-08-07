@@ -13,13 +13,13 @@ def _get_google_drive_service():
         #'https://www.googleapis.com/auth/drive',
     ]
 
-    SERVICE_ACCOUNT_FILE = 'google_drive_service_account.json'
+    SERVICE_ACCOUNT_FILE = os.getenv("GOOGLE_DRIVE_SVC_TOKEN_FILE", 'google_drive_service_account.json')
 
     # Service account credentials with user impersonation
     credentials = ServiceAccountCredentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE,
         scopes=SCOPES,
-        subject='airbyte@chowbus.com'  # The email of the user to impersonate
+        subject=os.getenv("GOOGLE_DRIVE_OWNER_EMAIL", "me")  # The email of the user to impersonate
     )
 
     drive_service = build('drive', 'v3', credentials=credentials)

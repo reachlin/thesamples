@@ -240,7 +240,7 @@ def query_vectors(s3_bucket, s3_index, query_text, embedding='text-embedding-ada
     """
     Query the S3 Vectors index with a text query.
     """
-    session = boto3.Session(profile_name="staging")
+    session = boto3.Session(profile_name=os.getenv("AWS_PROFILE_NAME", "default"))
     s3vectors = session.client("s3vectors")
 
     if embedding == 'text-embedding-ada-002':
