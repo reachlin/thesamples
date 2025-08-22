@@ -9,6 +9,7 @@ import requests
 from dotenv import load_dotenv
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from search import WebSearch  # Assuming this is the custom search module
+from chromadb.config import Settings
 
 try:
     import chromadb  # type: ignore
@@ -97,7 +98,7 @@ class VectorStore:
         print(f"[debug][vector] Initializing Chroma at '{path}', collection='{collection_name}'")
         if chromadb is None:
             raise RuntimeError("ChromaDB is not installed. Please install 'chromadb' as specified in requirements/environment.")
-        self.client = chromadb.PersistentClient(path=path)
+        self.client = chromadb.PersistentClient(path=path, settings=Settings(anonymized_telemetry=False))
         embed_fn = None
         if openai_api_key and OpenAI is not None:
             print(f"[debug][vector] Using OpenAI-compatible embeddings: model='{embedding_model}', dims={embedding_dimensions}, base_url='{openai_base_url or 'default'}'")

@@ -67,3 +67,36 @@ An autonomous Python agent that cycles through topics from `interests.json`, sea
 ## Notes
 - DuckDuckGo HTML scraping is best-effort and may vary.
 - This agent is for research/demonstration; verify content before using summaries in production.
+
+## Usage
+
+### Running `ask.py`
+The `ask.py` script allows you to interact with the AI and retrieve information from the vector database. Follow these steps:
+
+1. **Run the script**:
+   ```bash
+   python3 ask.py
+   ```
+
+2. **Provide a prompt**:
+   Enter your question when prompted. For example:
+   ```
+   Enter your prompt for the AI: What are popular LLMs in 2025?
+   ```
+
+3. **View the response**:
+   The AI will provide an answer based on the stored summaries in the vector database.
+
+### Running `engineer.py`
+The `engineer.py` script is designed for advanced operations, such as adding new data to the vector database or managing the collection. Follow these steps:
+
+1. **Run the script**:
+   ```bash
+   python3 engineer.py
+   ```
+
+2. **Choose an operation**:
+   Follow the on-screen instructions to perform tasks like adding new summaries, updating metadata, or querying the database.
+
+3. **Verify changes**:
+   Ensure that the vector database reflects the updates by querying it using `ask.py` or inspecting the `.chroma/` directory.
