@@ -33,7 +33,7 @@ An autonomous Python agent that cycles through topics from `interests.json`, sea
 - Edit `interests.json` with a list of objects like: `[ { "topic": "quantum computing" }, { "topic": "LLM routing" } ]`.
 
 4) Run the agent
-- `python3 main.py`
+- `python3 study.py`
 - The agent runs indefinitely. Press Ctrl+C to stop.
 
 ## Configuration (env vars)

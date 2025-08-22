@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
-from main import VectorStore
+from study import VectorStore
 from datetime import datetime, timezone
 
 

@@ -92,6 +92,62 @@ class Summarizer:
             sentences = [s.strip() for s in text.split(".") if len(s.strip()) > 0]
             return f"Topic: {topic}\nTitle: {title}\nURL: {url}\nSummary: " + ". ".join(sentences[:5])
 
+    def break_down_topic(self, topic: str, text: str) -> List[str]:
+        if self.client is None:
+            print(f"[debug][break_down_topic] Using fallback for topic breakdown: {topic}")
+            # Fallback: Extract keywords as subtopics
+            words = [word.strip() for word in text.split() if len(word.strip()) > 3]
+            return list(set(words[:10]))  # Return first 10 unique words as subtopics
+
+        prompt = (
+            "You are a helpful research assistant. Break down the given topic into a list of subtopics for further study. "
+            "Focus on key areas, concepts, or questions related to the topic. Provide the subtopics as a JSON array of strings."
+            "\n\n"
+            f"Topic: {topic}\n\nCONTENT:\n{text[:6000]}"
+        )
+        try:
+            print(f"[debug][break_down_topic] Requesting subtopics for: {topic}")
+            resp = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "You break down topics into subtopics for further study."},
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=0.2
+            )
+            content = resp.choices[0].message.content
+            # Clean up the AI response content
+            content = content.strip()
+            if "```json" in content:
+                start = content.find("```json")
+                end = content.rfind("```")
+                if start != -1 and end != -1 and start != end:
+                    content = content[start + 7:end].strip()
+            else:
+                if "```" in content:
+                    start = content.find("```")
+                    end = content.rfind("```")
+                    if start != -1 and end != -1 and start != end:
+                        content = content[start + 3:end].strip()
+            print(f"[debug][break_down_topic] AI response: {content}")
+            try:
+                # Attempt to parse as JSON
+                subtopics = json.loads(content)
+                if isinstance(subtopics, list) and all(isinstance(item, str) for item in subtopics):
+                    return subtopics
+                else:
+                    print("[debug][break_down_topic] AI response is not a valid JSON list of strings")
+            except json.JSONDecodeError:
+                print("[debug][break_down_topic] AI response is not JSON, treating as plain string")
+
+
+            print(f"[debug][break_down_topic] Cleaned AI response: {content}")
+            # Fallback: Split plain string response into lines
+            return [line.strip() for line in content.split("\n") if line.strip()]
+        except Exception as e:
+            print(f"[break_down_topic] OpenAI error: {e}")
+            return []  # Return empty list on failure
+
 
 class VectorStore:
     def __init__(self, path: str, collection_name: str, embedding_model: str, openai_api_key: Optional[str], openai_base_url: Optional[str] = None, embedding_dimensions: Optional[int] = None):
@@ -135,6 +191,20 @@ class VectorStore:
     def add_summary(self, topic: str, title: str, url: str, summary: str):
         uid = hashlib.sha256(f"{url}|{title}".encode()).hexdigest()
         metadata = {"topic": topic, "title": title, "url": url}
+
+        # Check for similar documents
+        try:
+            print(f"[debug][vector] Checking for similar documents for title='{title}'")
+            similar_docs = self.collection.query(
+                query_texts=[summary],
+                n_results=1  # Only need the most similar document
+            )
+            if similar_docs and similar_docs["documents"]:
+                print(f"[debug][vector] Found similar document for title='{title}', skipping insert.")
+                return
+        except Exception as e:
+            print(f"[vector] error checking for similar documents: {e}")
+
         try:
             print(f"[debug][vector] Adding summary id={uid[:8]}... topic='{topic}', title='{title}'")
             self.collection.add(ids=[uid], documents=[summary], metadatas=[metadata])
@@ -156,9 +226,14 @@ class InterestLoader:
             if not isinstance(data, list):
                 raise ValueError("interests.json must be a list of {topic}")
             topics = []
+            current_time = int(time.time())
             for item in data:
                 if isinstance(item, dict) and "topic" in item and isinstance(item["topic"], str):
-                    topics.append({"topic": item["topic"].strip()})
+                    last_studied = item.get("lastStudied", "")
+                    if last_studied and current_time - int(last_studied) < 8 * 3600:
+                        print(f"[debug][interests] Skipping topic '{item['topic']}' (studied recently)")
+                        continue
+                    topics.append({"topic": item["topic"].strip(), "lastStudied": last_studied})
             print(f"[debug][interests] Loaded {len(topics)} topic(s)")
             return topics
         except FileNotFoundError:
@@ -167,6 +242,102 @@ class InterestLoader:
         except Exception as e:
             print(f"[interests] error loading interests: {e}")
             return []
+
+    def update_last_studied(self, topic: str):
+        print(f"[debug][interests] Updating lastStudied for topic: {topic}")
+        try:
+            with open(self.path, "r") as f:
+                data = json.load(f)
+            if not isinstance(data, list):
+                raise ValueError("interests.json must be a list of {topic}")
+
+            updated = False
+            for item in data:
+                if item.get("topic") == topic:
+                    item["lastStudied"] = str(int(time.time()))  # Update with current Unix timestamp
+                    updated = True
+                    break
+
+            if updated:
+                with open(self.path, "w") as f:
+                    json.dump(data, f, indent=2)
+                print(f"[debug][interests] Updated lastStudied for topic: {topic}")
+            else:
+                print(f"[debug][interests] Topic not found: {topic}")
+        except Exception as e:
+            print(f"[interests] error updating lastStudied: {e}")
+
+    def append_subtopics(self, subtopics: List[str], parent: str = ""):
+        print(f"[debug][interests] Appending subtopics: {subtopics} with parent: {parent}")
+        try:
+            with open(self.path, "r") as f:
+                data = json.load(f)
+            if not isinstance(data, list):
+                raise ValueError("interests.json must be a list of {topic}")
+
+            existing_topics = {item["topic"] for item in data if isinstance(item, dict) and "topic" in item}
+            new_topics = [
+                {"topic": subtopic.strip(), "lastStudied": "", "parent": parent}
+                for subtopic in subtopics
+                if subtopic.strip() not in existing_topics
+            ]
+
+            if new_topics:
+                data.extend(new_topics)
+                with open(self.path, "w") as f:
+                    json.dump(data, f, indent=2)
+                print(f"[debug][interests] Added {len(new_topics)} new subtopic(s)")
+            else:
+                print("[debug][interests] No new subtopics to add")
+        except Exception as e:
+            print(f"[interests] error appending subtopics: {e}")
+
+    def clean_invalid_topics(self):
+        print("[debug][interests] Cleaning invalid topics from interests.json")
+        try:
+            with open(self.path, "r") as f:
+                data = json.load(f)
+            if not isinstance(data, list):
+                raise ValueError("interests.json must be a list of {topic}")
+
+            valid_topics = [
+                item for item in data
+                if isinstance(item, dict)
+                and "topic" in item
+                and isinstance(item["topic"], str)
+                and item["topic"].strip() not in ("", "---")
+            ]
+
+            if len(valid_topics) != len(data):
+                with open(self.path, "w") as f:
+                    json.dump(valid_topics, f, indent=2)
+                print(f"[debug][interests] Removed {len(data) - len(valid_topics)} invalid topic(s)")
+            else:
+                print("[debug][interests] No invalid topics found")
+        except Exception as e:
+            print(f"[interests] error cleaning invalid topics: {e}")
+
+    def clean_json_tags(self):
+        print("[debug][interests] Cleaning JSON tags from interests.json")
+        try:
+            with open(self.path, "r") as f:
+                data = json.load(f)
+            if not isinstance(data, list):
+                raise ValueError("interests.json must be a list of {topic}")
+
+            for item in data:
+                if isinstance(item, dict) and "topic" in item and isinstance(item["topic"], str):
+                    topic = item["topic"].strip()
+                    if topic.startswith("```") and topic.endswith("```"):
+                        item["topic"] = topic.strip("`").strip()
+                    elif topic.startswith("```json") and topic.endswith("```"):
+                        item["topic"] = topic[7:].strip("`").strip()
+
+            with open(self.path, "w") as f:
+                json.dump(data, f, indent=2)
+            print("[debug][interests] Cleaned JSON tags from topics")
+        except Exception as e:
+            print(f"[interests] error cleaning JSON tags: {e}")
 
 
 class Agent:
@@ -180,6 +351,7 @@ class Agent:
         self.vector_store = VectorStore(cfg.chroma_path, cfg.collection_name, cfg.embedding_model, api_key, base_url, cfg.embedding_dimensions)
         self.summarizer = Summarizer(cfg.model, self.openai_client)
         self.loader = InterestLoader(interests_path)
+        self.cycle_count = 0  # Initialize cycle counter
         print(
             "[debug][agent] Config -> "
             f"sleep_seconds={cfg.sleep_seconds}, max_docs_per_topic={cfg.max_docs_per_topic}, "
@@ -189,16 +361,23 @@ class Agent:
         )
 
     def cycle(self):
+        self.cycle_count += 1  # Increment cycle counter
+        print(f"[agent] Starting cycle {self.cycle_count}")
+        self.loader.clean_json_tags()  # Clean JSON tags before loading topics
+        self.loader.clean_invalid_topics()  # Clean invalid topics before loading
         interests = self.loader.load()
         if not interests:
             print("[agent] No interests found. Sleeping...")
             time.sleep(self.cfg.sleep_seconds)
             return
 
+        # Incrementally increase search result size per cycle
+        search_result_size = min(20, self.cycle_count + 4)  # Start from 5, max out at 20
+
         for item in interests:
             topic = item["topic"]
             print(f"[agent] Researching: {topic}")
-            results = WebSearch.search(topic, self.cfg.max_docs_per_topic)
+            results = WebSearch.search(topic, search_result_size)
             if not results:
                 print(f"[agent] No search results for {topic}")
                 continue
@@ -212,17 +391,28 @@ class Agent:
                 if summary:
                     self.vector_store.add_summary(topic, title, url, summary)
                     print(f"[agent] Saved summary for: {title}")
+
+                    # Generate subtopics for further study
+                    subtopics = self.summarizer.break_down_topic(topic, text)
+                    if subtopics:
+                        print(f"[agent] Subtopics for '{topic}': {subtopics}")
+                        self.loader.append_subtopics(subtopics, parent=topic)  # Append subtopics to interests.json with parent topic
+                    else:
+                        print(f"[agent] No subtopics generated for '{topic}'")
             print(f"[debug][agent] Completed topic: {topic}")
+            self.loader.update_last_studied(topic)  # Update last studied time
 
     def run_forever(self):
         print("[agent] Starting. Press Ctrl+C to stop.")
         while True:
             try:
                 self.cycle()
-                print(f"[debug][agent] Sleeping for {self.cfg.sleep_seconds}s before next cycle...")
-                time.sleep(self.cfg.sleep_seconds)
+                # Calculate sleep time based on cycle count
+                dynamic_sleep = self.cfg.sleep_seconds + (self.cycle_count * 60)  # Increase sleep by 60 seconds per cycle
+                print(f"[debug][agent] Sleeping for {dynamic_sleep}s before next cycle...")
+                time.sleep(dynamic_sleep)
             except KeyboardInterrupt:
-                print("[agent] Stopping.")
+                print(f"[agent] Stopping after {self.cycle_count} cycles.")
                 break
             except Exception as e:
                 print(f"[agent] error: {e}")

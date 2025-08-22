@@ -1,6 +1,368 @@
 [
-  {"topic": "Large Language Models 2025"},
-  {"topic": "Vector Databases"},
-  {"topic": "Retrieval Augmented Generation"},
-  {"topic": "reachlin"}
+  {
+    "topic": "Large Language Models 2025",
+    "lastStudied": ""
+  },
+  {
+    "topic": "Vector Databases",
+    "lastStudied": "1755852477"
+  },
+  {
+    "topic": "Retrieval Augmented Generation",
+    "lastStudied": "1755852523"
+  },
+  {
+    "topic": "reachlin",
+    "lastStudied": "1755852562"
+  },
+  {
+    "topic": "History and evolution of large language models (LLMs) up to 2025",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Transformer architecture and its role in modern LLMs",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Key advancements in LLMs from 2022 to 2025",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Overview of top LLMs in 2025 (e.g., BERT, Claude, Cohere, DeepSeek-R1, Ernie)",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Comparison of proprietary vs. open-source LLMs",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Applications of LLMs in natural language processing (NLP) and beyond",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Role of LLMs in the rise of generative AI (GenAI)",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Impact of LLMs on search engines and information retrieval",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Constitutional AI and ethical considerations in models like Claude",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Techniques for improving reasoning in LLMs (e.g., chain-of-thought, self-verification)",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Custom training and fine-tuning of enterprise LLMs (e.g., Cohere Command, Rerank)",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Integration of LLMs with IDEs, APIs, and development tools",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Emerging capabilities: code generation, computer-use tools, and agentic workflows",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Challenges and limitations of current LLMs (e.g., bias, energy consumption, interpretability)",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Future directions and anticipated developments in LLMs post-2025",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Definition and Core Concepts of Large Language Models (LLMs)",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Transformer Architecture in LLMs",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Key Characteristics of LLMs: Scale, Training, Contextual Understanding, and Generative Abilities",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Applications of LLMs in Natural Language Processing (NLP)",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Role of LLMs in Conversational AI and Chatbots",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Text and Content Generation using LLMs",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Code Generation and Programming Assistance with LLMs",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Knowledge Extraction and Summarization Capabilities",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Overview of Top 40 LLMs in 2025",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Comparative Analysis of Leading LLMs: GPT-4.5, Claude 3.7 Sonnet, Gemini 2.5 Pro, LLaMA 4",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Open Source vs. Closed Source LLMs",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Context Window Sizes and Their Impact on Performance",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Multimodal Capabilities in LLMs (e.g., Gemini 2.5 Pro, PaliGemma)",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Efficiency and Deployment of Compact LLMs (e.g., GPT-o3, TxGemma)",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Ethical Considerations and Safety in LLM Development",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Community-Driven and Distributed Model Training (e.g., Collective-1)",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Instruction Tuning and Fine-Tuning Techniques in LLMs",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Integration of LLMs with Real-Time Platforms (e.g., Grok-3 with X)",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "LLMs in Virtual and Embodied AI (e.g., SIMA)",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Philosophical and Reasoning Alignment in LLMs (e.g., Habermas Machine)",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Model Licensing and Commercial Use",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Future Trends and Predictions for LLMs Beyond 2025",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Overview of Top Large Language Models (LLMs) in 2025",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Comparative Analysis of Leading LLMs (e.g., GPT-4.5, Claude 3.7 Sonnet, Llama 3.1)",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Context Window Sizes and Their Impact on LLM Performance",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Knowledge Cutoff Dates and Training Data Timelines",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Open Source vs. Proprietary LLMs in 2025",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Parameter Sizes and Model Complexity",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Applications of LLMs in Natural Language Processing and Code Generation",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Innovations in LLM Architecture (e.g., Sparse Models like Mixtral 8x22B)",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Industry Adoption of LLMs (e.g., Fortune 500 Companies, SEO Disruption)",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Market Growth Projections for LLMs (2024\u20132033)",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Role of LLMs in Generative AI and Search Engine Evolution",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Evaluation of Model Accessibility (APIs, Open Source Availability)",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Performance Benchmarks and Real-Time Capabilities (e.g., Grok-3)",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Ethical Considerations and Limitations of Current LLMs",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Future Trends and Anticipated Developments Post-2025",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Latest Major Releases of Large Language Models in 2025",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Advancements in Reasoning and Multimodal Capabilities",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "OpenAI's GPT-5: Features, Rollout Controversies, and Performance",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Meta's Llama 4: Open-Source Developments and Model Variants",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Google's Gemini 2.0: Innovations and Benchmarks",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Anthropic's Claude 3.5 Sonnet: Upgrades and Use Cases",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "xAI's Grok 4: Capabilities and Free Access Strategy",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Shift Toward Agentic AI and Autonomous Task Execution",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Efficiency Improvements and Compute Cost Challenges",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Ethical Concerns and Bias Mitigation in LLMs",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Role of Open-Source Models in 2025 Landscape",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Industry vs. Academic Contributions to LLM Development",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Evaluation Methods and Benchmarking Innovations",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Controversies and Public Reactions to Model Rollouts",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Rumors and Speculations About Future LLM Developments",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Impact of LLMs on Coding, Tool Use, and Real-World Applications",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Timeline of Key LLM Releases and Announcements in 2025",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  },
+  {
+    "topic": "Community Responses on Platforms Like Reddit and X (Twitter)",
+    "lastStudied": "",
+    "parent": "Large Language Models 2025"
+  }
 ]
