@@ -2,6 +2,8 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 from main import VectorStore
+from datetime import datetime, timezone
+
 
 load_dotenv()
 
@@ -28,9 +30,6 @@ def chat_with_ai_with_references(prompt: str) -> str:
     chroma_path = os.getenv("CHROMA_PATH", ".chroma")
     collection_name = os.getenv("COLLECTION_NAME", "knowledge_summaries")
 
-    # Disable telemetry by setting an environment variable
-    os.environ["ANONYMIZED_TELEMETRY"] = "False"
-
     vector_store = VectorStore(
         path=chroma_path,
         collection_name=collection_name,
@@ -54,8 +53,9 @@ def chat_with_ai_with_references(prompt: str) -> str:
     references = [doc if isinstance(doc, str) else str(doc) for doc in references]
     references_text = "\n\n".join(references)
     #print(f"[chat_with_ai_with_references] References found: {references_text}")
+    current_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     extended_prompt = (
-        "You are a helpful assistant. Use the following references to answer the user's question.\n\n"
+        f"You are a helpful assistant. Now, it is UTC {current_time}. Use the following references to answer the user's question.\n\n"
         f"References:\n{references_text}\n\n"
         f"User's question: {prompt}"
     )
