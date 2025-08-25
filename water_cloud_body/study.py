@@ -24,7 +24,7 @@ except ImportError:
 
 @dataclass
 class Config:
-    sleep_seconds: int = 300
+    sleep_seconds: int = 60
     max_docs_per_topic: int = 5
     collection_name: str = "knowledge_summaries"
     chroma_path: str = ".chroma"
@@ -83,7 +83,7 @@ class Summarizer:
                     {"role": "user", "content": prompt},
                 ],
                 temperature=0.2,
-                max_tokens=400,
+                max_tokens=1000,
             )
             return resp.choices[0].message.content or ""
         except Exception as e:
@@ -129,7 +129,7 @@ class Summarizer:
                     end = content.rfind("```")
                     if start != -1 and end != -1 and start != end:
                         content = content[start + 3:end].strip()
-            print(f"[debug][break_down_topic] AI response: {content}")
+            #print(f"[debug][break_down_topic] AI response: {content}")
             try:
                 # Attempt to parse as JSON
                 subtopics = json.loads(content)
@@ -141,7 +141,7 @@ class Summarizer:
                 print("[debug][break_down_topic] AI response is not JSON, treating as plain string")
 
 
-            print(f"[debug][break_down_topic] Cleaned AI response: {content}")
+            #print(f"[debug][break_down_topic] Cleaned AI response: {content}")
             # Fallback: Split plain string response into lines
             return [line.strip() for line in content.split("\n") if line.strip()]
         except Exception as e:
@@ -372,7 +372,9 @@ class Agent:
             return
 
         # Incrementally increase search result size per cycle
-        search_result_size = min(20, self.cycle_count + 4)  # Start from 5, max out at 20
+        #search_result_size = min(20, self.cycle_count + 4)  # Start from 5, max out at 20
+        search_result_size = 3
+        print(f"\n[agent] Cycle: {self.cycle_count},\nSearch Result Size: {search_result_size},\nTotal Interests: {len(interests)}\n")
 
         for item in interests:
             topic = item["topic"]
@@ -399,7 +401,7 @@ class Agent:
                         self.loader.append_subtopics(subtopics, parent=topic)  # Append subtopics to interests.json with parent topic
                     else:
                         print(f"[agent] No subtopics generated for '{topic}'")
-            print(f"[debug][agent] Completed topic: {topic}")
+            print(f"\n[debug][agent] Completed topic: {topic}\n")
             self.loader.update_last_studied(topic)  # Update last studied time
 
     def run_forever(self):
@@ -409,7 +411,7 @@ class Agent:
                 self.cycle()
                 # Calculate sleep time based on cycle count
                 dynamic_sleep = self.cfg.sleep_seconds + (self.cycle_count * 60)  # Increase sleep by 60 seconds per cycle
-                print(f"[debug][agent] Sleeping for {dynamic_sleep}s before next cycle...")
+                print(f"\n[agent] Sleeping for {dynamic_sleep}s before next cycle...\n")
                 time.sleep(dynamic_sleep)
             except KeyboardInterrupt:
                 print(f"[agent] Stopping after {self.cycle_count} cycles.")
