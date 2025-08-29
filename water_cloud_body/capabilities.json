@@ -1,7 +1,17 @@
 [
     {
-    "name": "engineer",
+    "name": "000engineer",
     "description": "Responsible for developing and maintaining software applications.",
     "file": "engineer.py"
+    },
+    {
+    "name": "001camera",
+    "description": "Responsible for taking pictures or videos.",
+    "file": "camera.py"
+    },
+    {
+    "name": "002light",
+    "description": "Responsible for controlling lighting.",
+    "file": "light.py"
     }
 ]

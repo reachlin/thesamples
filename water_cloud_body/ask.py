@@ -1,4 +1,5 @@
 import os
+import json
 from dotenv import load_dotenv
 from openai import OpenAI
 from study import VectorStore
@@ -167,14 +168,21 @@ def evaluate_response(question, answer):
         raise ValueError("OPENAI_API_KEY is not set in the environment.")
 
     client = OpenAI(api_key=api_key, base_url=base_url)
-    
+
+    action = {
+        "action": "action name",
+        "details": "action details"
+    }
+    capabilities = json.load(open("capabilities.json", "r"))
     prompt = f"""
-        You are an expert evaluator. Given the user's question and the AI's answer, determine if the answer is satisfactory.
-        If it is satisfactory, or the question is unclear, just return the exact string "NO_ACTION" to indicate no further action is needed.
-        If it is not satisfactory and it can be handled by a new script, return the description of the new script and test cases.
-        For example:
-            If the question is about find the save button on the screen, but the answer is "I don't know how", or "I can't see the screen".
-            You might suggest creating a new script that takes a screenshot of the computer screen, and return the location of the save button.
+        You are a helpful personal assistant. Given the user's question and a previous AI's answer, determine if any action you could take further to satisfy the user.
+        If there is no action needed, or the question is unclear, just return the exact string "NO_ACTION" to indicate no further action is needed.
+        If you find any action from the following action candidate list, return the name of that action, followed by details on how to execute it.
+        Your output should be in json format like this:
+        {action}
+        The action list is also in a json format.
+        The action list:
+        {capabilities}
     """
     messages = [
         {"role": "system", "content": prompt},
