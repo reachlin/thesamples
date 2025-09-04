@@ -1,17 +1,9 @@
 [
     {
     "name": "000engineer",
-    "description": "Responsible for developing and maintaining software applications.",
-    "file": "engineer.py"
-    },
-    {
-    "name": "001camera",
-    "description": "Responsible for taking pictures or videos.",
-    "file": "camera.py"
-    },
-    {
-    "name": "002light",
-    "description": "Responsible for controlling lighting.",
-    "file": "light.py"
+    "description": "Responsible for making other tools.",
+    "status": "ready",
+    "file": "engineer.py",
+    "usage": "feed engineer.py your requirements in a file, e.g., engineer.py requirements.txt"
     }
 ]

@@ -175,9 +175,11 @@ def evaluate_response(question, answer):
     }
     capabilities = json.load(open("capabilities.json", "r"))
     prompt = f"""
-        You are a helpful personal assistant. Given the user's question and a previous AI's answer, determine if any action you could take further to satisfy the user.
+        You are a helpful personal assistant. Given the user's question and a previous AI's answer, determine if any action you could take further to satisfy the user with a provided tools list.
         If there is no action needed, or the question is unclear, just return the exact string "NO_ACTION" to indicate no further action is needed.
-        If you find any action from the following action candidate list, return the name of that action, followed by details on how to execute it.
+        If you find any tool with a status ready from the tools list, return the name of that tool, followed by details on how to use it.
+        If you find any tool but its status is not ready, return the exact string "WAITING" to indicate the tool is not ready.
+        If you couldn't find any tool, you should call the engineer tool from the tools list to make a new tool.
         Your output should be in json format like this:
         {action}
         The action list is also in a json format.
@@ -219,8 +221,13 @@ if __name__ == "__main__":
         print(f"\033[32m[AI Response]\033[0m {response}\n")
         # add a step to take further action based on the response, and user_prompt
         # call ai to take action based on the response
-        if response:
+        while response:
             action_response = evaluate_response(user_prompt, response)
             print(f"[debug][evaluate_response] {action_response}")
-            if not "NO_ACTION" in action_response:
-                print(f"\033[36m[AI Action]\033[0m {action_response}\n")
+            if "NO_ACTION" in action_response:
+                break
+            if "WAITING" in action_response:
+                print(f"\033[33m[AI Action]\033[0m waiting for the tool...\n")
+            print(f"\033[36m[AI Action]\033[0m {action_response}\n")
+            break
+
