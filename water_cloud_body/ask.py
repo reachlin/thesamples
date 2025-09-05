@@ -223,7 +223,7 @@ if __name__ == "__main__":
     print("Type 'clear' to clear chat history, or 'exit'/'quit' to quit.")
     while True:
         user_prompt = input("Enter your prompt for the AI: ")
-        if user_prompt.lower() in ["exit", "quit"]:
+        if user_prompt.lower() in ["exit", "quit", "bye"]:
             print("Goodbye!")
             break
         elif user_prompt.lower() == "clear":
@@ -290,11 +290,13 @@ if __name__ == "__main__":
                     
                     break
                 else:
-                    print(f"\033[31m[AI Action]\033[0m {action_response}\n")
+                    print(f"\033[35m[AI Action] Calling\033[0m {action_response}\n")
+                    # TODO: call the tool action_data.get('action')
+                    # needs LLM to extract parameters from action_data.get('details') and user_prompt
                     break
                     
             except json.JSONDecodeError:
                 # If it's not valid JSON, treat it as a regular action response
-                print(f"\033[31m[AI Action]\033[0m {action_response}\n")
+                print(f"\033[31m[AI Action] Error\033[0m {action_response}\n")
                 break
 
