@@ -11,6 +11,17 @@ load_dotenv()
 # Global variable to store chat history
 chat_history = []
 
+# Load capabilities from capabilities.json
+try:
+    with open('capabilities.json', 'r') as f:
+        capabilities = json.load(f)
+except FileNotFoundError:
+    print("Warning: capabilities.json not found, starting with empty capabilities list")
+    capabilities = []
+except json.JSONDecodeError:
+    print("Warning: Error parsing capabilities.json, starting with empty capabilities list")
+    capabilities = []
+
 # Initialize vector store globally to avoid re-initialization
 api_key = os.getenv("OPENAI_API_KEY")
 base_url = os.getenv("OPENAI_BASE_URL")
@@ -180,6 +191,7 @@ def evaluate_response(question, answer):
         If you find any tool with a status ready from the tools list, return the name of that tool, followed by details on how to use it.
         If you find any tool but its status is not ready, return the exact string "WAITING" to indicate the tool is not ready.
         If you couldn't find any tool, you should call the engineer tool from the tools list to make a new tool.
+        Remember, you can do anything with tools created by the engineer tool including interacting with my computer and the internet.
         Your output should be in json format like this:
         {action}
         The action list is also in a json format.
@@ -221,13 +233,68 @@ if __name__ == "__main__":
         print(f"\033[32m[AI Response]\033[0m {response}\n")
         # add a step to take further action based on the response, and user_prompt
         # call ai to take action based on the response
-        while response:
+        action_response = "DUMMY"
+        while action_response:
             action_response = evaluate_response(user_prompt, response)
             print(f"[debug][evaluate_response] {action_response}")
             if "NO_ACTION" in action_response:
                 break
             if "WAITING" in action_response:
                 print(f"\033[33m[AI Action]\033[0m waiting for the tool...\n")
-            print(f"\033[36m[AI Action]\033[0m {action_response}\n")
-            break
+                break
+            
+            # Try to parse action_response as JSON
+            try:
+                # remove ```json if present
+                action_response = action_response.replace("```json", "").replace("```", "").strip()
+                action_data = json.loads(action_response)
+                if isinstance(action_data, dict) and action_data.get('action') == '000engineer':
+                    print(f"\033[35m[AI Action]\033[0m Calling engineer to create a new tool...\n")
+
+                    tool_name = f"custom_tool_{len(capabilities)}"
+                    # Create a requirements file with the details
+                    requirements_content = action_data.get('details', 'Create a new tool based on the current context')
+                    with open(tool_name+".py", 'w') as f:
+                        f.write(f"Tool Requirements:\n{requirements_content}\n")
+                    
+                    # Call the engineer tool
+                    import subprocess
+                    try:
+                        # Start engineer.py without waiting for it to complete, suppress output
+                        with open(os.devnull, 'w') as devnull:
+                            subprocess.Popen(['python', 'engineer.py', tool_name+".py"], 
+                                           stdout=devnull, stderr=devnull)
+                        print(f"\033[35m[Engineer]\033[0m Engineer started in background...")
+                        
+                        # Create a new tool entry for capabilities
+                        new_tool = {
+                            "name": tool_name,
+                            "description": requirements_content,
+                            "status": "init",
+                            "version": 0,
+                            "file": tool_name+".py",
+                            "usage": f"Tool created by engineer: {requirements_content}"
+                        }
+                        
+                        # Append to capabilities list
+                        capabilities.append(new_tool)
+                        
+                        # Update capabilities.json file
+                        with open('capabilities.json', 'w') as f:
+                            json.dump(capabilities, f, indent=4)
+                        
+                        print(f"\033[35m[Tool Created]\033[0m New tool added to capabilities: {new_tool['name']}")
+                        
+                    except Exception as e:
+                        print(f"\033[31m[Engineer Error]\033[0m Error starting engineer: {e}")
+                    
+                    break
+                else:
+                    print(f"\033[31m[AI Action]\033[0m {action_response}\n")
+                    break
+                    
+            except json.JSONDecodeError:
+                # If it's not valid JSON, treat it as a regular action response
+                print(f"\033[31m[AI Action]\033[0m {action_response}\n")
+                break
 

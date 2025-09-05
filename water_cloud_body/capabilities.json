@@ -1,9 +1,25 @@
 [
     {
-    "name": "000engineer",
-    "description": "Responsible for making other tools.",
-    "status": "ready",
-    "file": "engineer.py",
-    "usage": "feed engineer.py your requirements in a file, e.g., engineer.py requirements.txt"
+        "name": "000engineer",
+        "description": "Responsible for making other tools.",
+        "status": "ready",
+        "file": "engineer.py",
+        "usage": "feed engineer.py your requirements in a file, e.g., engineer.py requirements.txt"
+    },
+    {
+        "name": "tester",
+        "description": "Responsible for testing other tools.",
+        "status": "ready",
+        "file": "tester.py",
+        "usage": "feed tester.py your python script and expect output, e.g., tester.py your_script.py OK",
+        "version": 4
+    },
+    {
+        "name": "custom_tool_2",
+        "description": "The engineer tool will be used to create a custom script that fetches the monthly QQQ stock price data and generates a graph saved as 'qqq_monthly.png'.",
+        "status": "ready",
+        "version": 3,
+        "file": "custom_tool_2.py",
+        "usage": "Tool created by engineer: The engineer tool will be used to create a custom script that fetches the monthly QQQ stock price data and generates a graph saved as 'qqq_monthly.png'."
     }
 ]
