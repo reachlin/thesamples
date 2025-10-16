@@ -10,29 +10,13 @@ import requests
 from mcp.server.fastmcp import FastMCP
 
 # Create server
-mcp = FastMCP("Echo Server")
-
-
-@mcp.tool()
-def add(a: int, b: int) -> int:
-    """Add two numbers"""
-    print(f"[debug-server] add({a}, {b})")
-    return a + b
+mcp = FastMCP("Screenshot Reader Server")
 
 
 @mcp.tool()
 def get_secret_word() -> str:
     print("[debug-server] get_secret_word()")
-    return random.choice(["apple", "banana", "cherry"])
-
-
-@mcp.tool()
-def get_current_weather(city: str) -> str:
-    print(f"[debug-server] get_current_weather({city})")
-
-    endpoint = "https://wttr.in"
-    response = requests.get(f"{endpoint}/{city}")
-    return response.text
+    return random.choice(["up", "down", "left", "right"])
 
 def screenshot() -> str:
     """Take a screenshot and save it to a file"""
@@ -61,11 +45,13 @@ def scan_image(image):
 import re
 DEBUG = True
 g_document = []
+last_index = 0
 
-def find_tokens(to_find, after=None):
-    print(f"[debug-server] find_tokens({to_find}, {after}, document_len={len(g_document)})")
-    if not g_document:
-        return None
+def find_tokens(to_find):
+    global g_document, last_index
+    print(f"[debug-server] find_tokens({to_find}, {last_index}, document_len={len(g_document)})")
+    if not g_document or len(g_document) == 0:
+        read_screenshot()
     index = 0
     for item in g_document:
         text, score = item[1]
@@ -82,13 +68,23 @@ def find_tokens(to_find, after=None):
                 bp, ep = match.span()
                 x = p0x + (p1x - p0x)*(bp+1)/length_text
                 y = p0y + (p2y - p0y)/3
-                if after:
-                    if index > after:
+
+                if last_index > 0:
+                    if index > last_index:
+                        last_index = index
                         return index, x, y, match.group()
                 else:
+                    last_index = index
                     return index, x, y, match.group()
         index += 1
     return None
+
+@mcp.tool()
+def mouse_click():
+    """Perform a mouse click at the current position"""
+    print(f"[debug-server] mouse_click()")
+    pyautogui.click()
+    return "clicked"
 
 @mcp.tool()
 def find_text_on_screen(to_find: str) -> str:
@@ -116,7 +112,8 @@ def read_screenshot() -> str:
     document = scan_image(saved_file)
     if document and len(document)>0:
         print(f"[debug-server] read_screenshot() - found: {document[0]}")
-        global g_document
+        global g_document, last_index
+        last_index = 0
         g_document = document[0]
         return f"{document[0]}"
     return "nothing readable"
